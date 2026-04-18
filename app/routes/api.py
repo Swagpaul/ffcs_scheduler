@@ -50,19 +50,25 @@ def assign_slot():
     else:
         cp.priority = data.get('priority', cp.priority)
 
-    # Check if Offering exists
-    offering = CourseOffering.query.filter_by(course_id=data['course_id'], professor_id=data['professor_id']).first()
+    # Check if exact Offering already exists (same course, prof, and slots)
+    theory_slot = data.get('theory_slot') or None
+    lab_slot = data.get('lab_slot') or None
+    
+    offering = CourseOffering.query.filter_by(
+        course_id=data['course_id'], 
+        professor_id=data['professor_id'],
+        theory_slot=theory_slot,
+        lab_slot=lab_slot
+    ).first()
+    
     if not offering:
         offering = CourseOffering(
             course_id=data['course_id'], 
             professor_id=data['professor_id'],
-            theory_slot=data.get('theory_slot'),
-            lab_slot=data.get('lab_slot')
+            theory_slot=theory_slot,
+            lab_slot=lab_slot
         )
         db.session.add(offering)
-    else:
-        offering.theory_slot = data.get('theory_slot', offering.theory_slot)
-        offering.lab_slot = data.get('lab_slot', offering.lab_slot)
 
     db.session.commit()
     return jsonify({"message": "Slot assigned successfully"})

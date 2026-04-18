@@ -158,18 +158,65 @@
             btn.style.opacity = '0.7';
             btn.disabled = true;
             
-            setTimeout(() => {
-                if (isSignUp) {
-                    alert("Account created successfully! Please sign in.");
-                    isSignUp = false;
-                    updateUI();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (isSignUp) {
+                const confirmPassword = document.getElementById('confirm-password').value;
+                if (password !== confirmPassword) {
+                    alert("Passwords do not match!");
                     btn.innerHTML = originalContent;
                     btn.style.opacity = '1';
                     btn.disabled = false;
-                } else {
-                    window.location.href = '/';
+                    return;
                 }
-            }, 1500);
+                
+                fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                })
+                .then(r => r.json().then(data => ({status: r.status, body: data})))
+                .then(res => {
+                    if (res.status === 200) {
+                        alert("Account created successfully! Please sign in.");
+                        isSignUp = false;
+                        updateUI();
+                    } else {
+                        alert(res.body.error || "Failed to create account.");
+                    }
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }).catch(err => {
+                    alert("An error occurred.");
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+            } else {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                })
+                .then(r => r.json().then(data => ({status: r.status, body: data})))
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.href = '/';
+                    } else {
+                        alert(res.body.error || "Invalid credentials");
+                        btn.innerHTML = originalContent;
+                        btn.style.opacity = '1';
+                        btn.disabled = false;
+                    }
+                }).catch(err => {
+                    alert("An error occurred.");
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+            }
         });
     </script>
 </body>

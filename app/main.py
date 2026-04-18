@@ -31,6 +31,13 @@ def create_app(config_name="default"):
     # Register Blueprints
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    @app.before_request
+    def require_login():
+        from flask import session, redirect, request
+        allowed_endpoints = ['login_page', 'static', 'api.login', 'api.register']
+        if request.endpoint not in allowed_endpoints and 'user_id' not in session:
+            return redirect('/login')
+
     @app.route('/')
     def dashboard():
         return render_template('index.html')

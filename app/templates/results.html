@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Results | FFCS Scheduler{% endblock %}
+
+{% block extra_head %}
+<style>
+    .timetable-card {
+        margin-bottom: 4rem;
+        position: relative;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        margin-top: 1rem;
+        border-radius: 8px;
+    }
+
+    .score-badge {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: #ec4899;
+        color: white;
+        padding: 6px 20px;
+        border-radius: 20px;
+        font-weight: 800;
+        box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+        z-index: 10;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .ffcs-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.65rem;
+        color: var(--text-main);
+        background: #0b1121;
+        border: 1px solid #1e293b;
+    }
+
+    .ffcs-table th,
+    .ffcs-table td {
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        padding: 4px;
+        text-align: center;
+        min-width: 40px;
+        height: 35px;
+    }
+
+    .header-row {
+        background: #1e293b;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+
+    .day-cell {
+        background: #1e293b;
+        color: #60a5fa;
+        font-weight: bold;
+        width: 60px;
+    }
+
+    .type-cell {
+        background: #1e293b;
+        color: #94a3b8;
+        width: 60px;
+    }
+
+    .lunch-cell {
+        background: #334155;
+        color: #94a3b8;
+        font-weight: bold;
+        width: 30px;
+    }
+
+    .slot-cell {
+        position: relative;
+    }
+
+    .slot-label {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        color: #475569;
+        font-size: 0.5rem;
+        pointer-events: none;
+    }
+
+    .class-filled {
+        color: white;
+        padding: 4px 2px;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        line-height: 1.1;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+        transition: transform 0.2s ease;
+        cursor: default;
+    }
+
+    .class-filled:hover {
+        transform: scale(1.05);
+        z-index: 5;
+    }
+
+    .course-code {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+    }
+
+    .course-prof {
+        font-size: 0.55rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .loading-text {
+        color: var(--primary);
+        font-weight: bold;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 0.5;
+        }
+
+        50% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0.5;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Top Timetables</h1>
+    <p class="subtitle">Ranked by heuristic score and advanced reasoning.</p>
+</header>
+
+<section id="ai-section" style="margin-bottom: 3rem; display: none;">
+    <div class="card" style="border-color: var(--primary);">
+        <h3 style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-magic" style="color: var(--primary);"></i>
+            Recommendation Engine
+        </h3>
+        <div id="ai-content" style="margin-top: 1.5rem;">
+            <p class="loading-text">Analyzing the best options for you...</p>
+        </div>
+    </div>
+</section>
+
+<section id="timetables-list">
+    <div style="text-align: center; padding: 5rem;">
+        <p class="loading-text">Fetching results...</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const GRID_MAPPING = {
+        'MON': {
+            'THEORY': ['A1', 'F1', 'D1', 'TD1', 'TG1', '-', '-', 'A2', 'F2', 'D2', 'TB2', 'TG2', '-', 'V3'],
+            'LAB': ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', '-', 'L31', 'L32', 'L33', 'L34', 'L35', 'L36', '-']
+        },
+        'TUE': {
+            'THEORY': ['B1', 'G1', 'E1', 'TC1', 'TAA1', '-', '-', 'B2', 'G2', 'E2', 'TC2', 'TAA2', '-', 'V4'],
+            'LAB': ['L7', 'L8', 'L9', 'L10', 'L11', 'L12', '-', 'L37', 'L38', 'L39', 'L40', 'L41', 'L42', '-']
+        },
+        'WED': {
+            'THEORY': ['C1', 'A1', 'F1', 'V1', 'V2', '-', '-', 'C2', 'A2', 'F2', 'TD2', 'TBB2', '-', 'V5'],
+            'LAB': ['L13', 'L14', 'L15', 'L16', 'L17', 'L18', '-', 'L43', 'L44', 'L45', 'L46', 'L47', 'L48', '-']
+        },
+        'THU': {
+            'THEORY': ['D1', 'B1', 'G1', 'TE1', 'TCC1', '-', '-', 'D2', 'B2', 'G2', 'TF2', 'TCC2', '-', 'V6'],
+            'LAB': ['L19', 'L20', 'L21', 'L22', 'L23', 'L24', '-', 'L49', 'L50', 'L51', 'L52', 'L53', 'L54', '-']
+        },
+        'FRI': {
+            'THEORY': ['E1', 'C1', 'TA1', 'TF1', 'TD1', '-', '-', 'E2', 'C2', 'TA2', 'TF2', 'TDD2', '-', 'V7'],
+            'LAB': ['L25', 'L26', 'L27', 'L28', 'L29', 'L30', '-', 'L55', 'L56', 'L57', 'L58', 'L59', 'L60', '-']
+        },
+        'SAT': {
+            'THEORY': ['V3', 'X11', 'X12', 'Y11', 'Y12', '-', '-', 'X21', 'Z21', 'Y21', 'W21', 'W22', '-', 'V9'],
+            'LAB': ['L71', 'L72', 'L73', 'L74', 'L75', 'L76', '-', 'L77', 'L78', 'L79', 'L80', 'L81', 'L82', '-']
+        },
+        'SUN': {
+            'THEORY': ['V10', 'Y11', 'Y12', 'X11', 'X12', '-', '-', 'Y71', 'X21', 'X21', 'W21', 'W22', '-', 'V11'],
+            'LAB': ['L83', 'L84', 'L85', 'L86', 'L87', 'L88', '-', 'L89', 'L90', 'L91', 'L92', 'L93', 'L94', '-']
+        }
+    };
+
+    const SUBJECT_COLORS = [
+        '#ef4444', // Red
+        '#3b82f6', // Blue
+        '#10b981', // Emerald
+        '#f59e0b', // Amber
+        '#8b5cf6', // Violet
+        '#06b6d4', // Cyan
+        '#f97316', // Orange
+        '#ec4899', // Pink
+        '#6366f1', // Indigo
+        '#14b8a6', // Teal
+        '#eab308', // Yellow
+        '#a855f7', // Purple
+        '#22d3ee', // Bright Cyan
+        '#fb7185', // Rose
+        '#4ade80', // Light Green
+        '#60a5fa'  // Light Blue
+    ];
+
+    function getSubjectColor(name) {
+        if (!name) return '#475569';
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % SUBJECT_COLORS.length;
+        return SUBJECT_COLORS[index];
+    }
+
+    const THEORY_TIMES = {
+        start: ['08:00', '09:00', '10:00', '11:00', '12:00', '-', '-', '14:00', '15:00', '16:00', '17:00', '18:00', '-', '19:00'],
+        end: ['08:50', '09:50', '10:50', '11:50', '12:50', '-', '-', '14:50', '15:50', '16:50', '17:50', '18:50', '-', '19:50']
+    };
+
+    const LAB_TIMES = {
+        start: ['08:00', '08:51', '09:51', '10:41', '11:41', '12:31', '-', '14:00', '14:51', '16:01', '16:51', '17:51', '18:41', '-'],
+        end: ['08:50', '09:40', '10:40', '11:30', '12:30', '13:20', '-', '14:50', '15:40', '16:40', '17:40', '18:40', '19:30', '-']
+    };
+
+    async function init() {
+        fetch('/api/timetables')
+            .then(r => r.json())
+            .then(tts => {
+                renderTimetables(tts);
+                fetchAIRanking();
+            });
+    }
+
+    function renderTimetables(tts) {
+        const list = document.getElementById('timetables-list');
+        if (tts.length === 0) {
+            list.innerHTML = '<div class="card">No timetables generated yet. Please go to Generate page.</div>';
+            return;
+        }
+
+        list.innerHTML = tts.map((tt, idx) => `
+            <div class="card timetable-card animate-fade" style="position: relative; animation-delay: ${idx * 0.1}s;">
+                <div class="score-badge">Score: ${tt.score}</div>
+                <h3 style="margin-bottom: 1.5rem;">Option #${idx + 1}</h3>
+                
+                <div class="table-responsive">
+                    <table class="ffcs-table">
+                    <thead>
+                        <tr class="header-row">
+                            <th rowspan="2" colspan="2">THEORY</th>
+                            <th>Start</th>
+                            ${THEORY_TIMES.start.map((t, i) => i === 7 ? '<th rowspan="4" class="lunch-cell">LUNCH</th>' + `<th>${t}</th>` : `<th>${t}</th>`).join('')}
+                        </tr>
+                        <tr class="header-row">
+                            <th>End</th>
+                            ${THEORY_TIMES.end.map(t => `<th>${t}</th>`).join('')}
+                        </tr>
+                        <tr class="header-row">
+                            <th rowspan="2" colspan="2">LAB</th>
+                            <th>Start</th>
+                            ${LAB_TIMES.start.map(t => `<th>${t}</th>`).join('')}
+                        </tr>
+                        <tr class="header-row">
+                            <th>End</th>
+                            ${LAB_TIMES.end.map(t => `<th>${t}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.keys(GRID_MAPPING).map(day => `
+                            <tr>
+                                <td rowspan="2" class="day-cell">${day}</td>
+                                <td class="type-cell">THEORY</td>
+                                <td>-</td>
+                                ${GRID_MAPPING[day].THEORY.map((slot, i) => i === 7 ? '<td rowspan="2" class="lunch-cell">LUNCH</td>' + renderSlotCell(tt.data, slot, 'theory') : renderSlotCell(tt.data, slot, 'theory')).join('')}
+                            </tr>
+                            <tr>
+                                <td class="type-cell">LAB</td>
+                                <td>-</td>
+                                ${GRID_MAPPING[day].LAB.map(slot => renderSlotCell(tt.data, slot, 'lab')).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                </div>
+                
+                <div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                    ${tt.data.map(c => {
+            const color = getSubjectColor(c.course_name);
+            return `
+                        <div style="font-size: 0.85rem; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(5px); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid ${color}; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <div style="font-weight: 800; color: ${color}; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: flex-start;">
+                                <span>${c.course_name}</span>
+                                <span style="font-size: 0.65rem; background: ${color}22; padding: 2px 6px; border-radius: 4px; border: 1px solid ${color}44;">${c.course_code || 'COURSE'}</span>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 8px;">${c.prof_name}</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                ${c.theory_slot ? `<span class="badge" style="background: ${color}; font-size: 0.65rem; box-shadow: 0 2px 4px ${color}44;">${c.theory_slot}</span>` : ''}
+                                ${c.lab_slot ? `<span class="badge" style="background: ${color}; font-size: 0.65rem; box-shadow: 0 2px 4px ${color}44;">${c.lab_slot}</span>` : ''}
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderSlotCell(data, slot, type) {
+        if (slot === '-') return '<td>-</td>';
+
+        const course = data.find(c => {
+            const slotsStr = (type === 'theory' ? c.theory_slot : c.lab_slot) || "";
+            return slotsStr.toUpperCase().split('+').map(s => s.trim()).includes(slot.toUpperCase());
+        });
+
+        return `
+            <td class="slot-cell">
+                <span class="slot-label">${slot}</span>
+                ${course ? `
+                    <div class="class-filled" style="background-color: ${getSubjectColor(course.course_name)}">
+                        <div class="course-code">${slot}-${course.course_name.split(' ')[0]}</div>
+                        <div class="course-prof">${course.prof_name.split(' ')[0]}</div>
+                    </div>
+                ` : ''}
+            </td>
+        `;
+    }
+
+    function fetchAIRanking() {
+        const section = document.getElementById('ai-section');
+        const content = document.getElementById('ai-content');
+        section.style.display = 'block';
+
+        fetch('/api/best')
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    content.innerHTML = `<p style="color: var(--danger)">${data.error}</p>`;
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="ai-explanation">
+                        <p style="font-weight: 600; font-style: italic; color: var(--text-main);">${data.overall_summary}</p>
+                    </div>
+                    <div class="grid">
+                        ${data.rankings.map(r => `
+                            <div style="margin-bottom: 1.5rem;">
+                                <h4 style="color: var(--primary);">Rank #${r.rank} - Timetable ID: ${r.timetable_id}</h4>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0;">${r.explanation}</p>
+                                <ul style="font-size: 0.8rem; color: var(--accent); list-style: none;">
+                                    ${r.pros.map(p => `<li><i class="fas fa-check"></i> ${p}</li>`).join('')}
+                                </ul>
+                                <ul style="font-size: 0.8rem; color: var(--danger); list-style: none;">
+                                    ${r.cons.map(c => `<li><i class="fas fa-times"></i> ${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                content.innerHTML = `<p style="color: var(--danger)">Connection failed. Please check your settings.</p>`;
+            });
+    }
+
+    window.onload = init;
+</script>
+{% endblock %}

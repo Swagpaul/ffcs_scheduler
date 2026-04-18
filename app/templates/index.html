@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | FFCS Scheduler{% endblock %}
+
+{% block content %}
+<header class="animate-fade">
+    <h1>Welcome to FFCS Scheduler</h1>
+    <p class="subtitle">Intelligent timetable scheduling for modern students.</p>
+</header>
+
+<section class="grid">
+    <div class="card animate-fade" style="animation-delay: 0.1s;">
+        <h3><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Quick Start</h3>
+        <p style="margin: 1rem 0; color: var(--text-muted);">Add your courses and preferred professors to get started.</p>
+        <a href="/courses" class="btn btn-primary">Add Courses</a>
+    </div>
+
+    <div class="card animate-fade" style="animation-delay: 0.2s;">
+        <h3><i class="fas fa-bolt" style="color: var(--secondary);"></i> Smart Logic</h3>
+        <p style="margin: 1rem 0; color: var(--text-muted);">Our engine checks millions of combinations for clashes.</p>
+        <a href="/generate" class="btn btn-primary">Generate Now</a>
+    </div>
+
+    <div class="card animate-fade" style="animation-delay: 0.3s;">
+        <h3><i class="fas fa-star" style="color: var(--accent);"></i> Smart Optimization</h3>
+        <p style="margin: 1rem 0; color: var(--text-muted);">Get ranked recommendations based on your unique style.</p>
+        <a href="/results" class="btn btn-primary">View Results</a>
+    </div>
+</section>
+
+<section style="margin-top: 3rem;" class="animate-fade" style="animation-delay: 0.4s;">
+    <h2>System Status</h2>
+    <div class="card" style="margin-top: 1rem;">
+        <div id="status-container">
+            <p>Loading system statistics...</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/api/data')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('status-container');
+                container.innerHTML = `
+                    <div style="display: flex; gap: 2rem;">
+                        <div>
+                            <span style="font-size: 2rem; font-weight: 700; color: var(--primary);">${data.courses.length}</span>
+                            <p style="color: var(--text-muted);">Courses</p>
+                        </div>
+                        <div>
+                            <span style="font-size: 2rem; font-weight: 700; color: var(--secondary);">${data.professors.length}</span>
+                            <p style="color: var(--text-muted);">Professors</p>
+                        </div>
+                        <div>
+                            <span style="font-size: 2rem; font-weight: 700; color: var(--accent);">${data.offerings.length}</span>
+                            <p style="color: var(--text-muted);">Offerings</p>
+                        </div>
+                    </div>
+                `;
+            });
+    });
+</script>
+{% endblock %}

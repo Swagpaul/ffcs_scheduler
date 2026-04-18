@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Generate | FFCS Scheduler{% endblock %}
+
+{% block extra_head %}
+<style>
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.9);
+        z-index: 1000;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid var(--glass);
+        border-top: 5px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Generate Timetables</h1>
+    <p class="subtitle">Run the engine to find all non-clashing combinations.</p>
+</header>
+
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <div style="font-size: 4rem; color: var(--primary); margin-bottom: 2rem;">
+        <i class="fas fa-microchip"></i>
+    </div>
+    <h2>Ready to Optimize?</h2>
+    <p style="color: var(--text-muted); margin: 1rem 0 2rem;">We will process all course-professor mappings and generate valid schedules.</p>
+    <button id="generate-btn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.2rem;">
+        <i class="fas fa-play"></i> Start Generation
+    </button>
+</div>
+
+<div id="results-summary" style="margin-top: 2rem; display: none;">
+    <div class="card" style="border-color: var(--accent);">
+        <h3>Generation Complete!</h3>
+        <p id="summary-text" style="margin: 1rem 0;"></p>
+        <a href="/results" class="btn btn-primary">View Results</a>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loader">
+    <div class="spinner"></div>
+    <h2 style="margin-top: 2rem;">Thinking...</h2>
+    <p style="color: var(--text-muted); margin-top: 0.5rem;">Solving slot constraints</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('generate-btn').onclick = () => {
+        const loader = document.getElementById('loader');
+        const summary = document.getElementById('results-summary');
+        const summaryText = document.getElementById('summary-text');
+        
+        loader.style.display = 'flex';
+        
+        fetch('/api/generate', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                loader.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    summary.style.display = 'block';
+                    summaryText.innerText = `Successfully generated ${data.count} valid timetable combinations. Top 20 are ready for ranking.`;
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                alert("Error during generation. Check server logs.");
+            });
+    };
+</script>
+{% endblock %}

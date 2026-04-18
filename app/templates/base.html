@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FFCS Scheduler{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Top Bar for Logout */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 260px;
+            right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 2rem;
+            z-index: 90;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            background: var(--glass);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        main {
+            padding-top: 90px; /* Offset for top bar */
+        }
+
+        @media (max-width: 768px) {
+            .top-bar { left: 0; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-details">
+                <span class="user-name">Swagata Paul</span>
+                <span class="user-role">Student</span>
+            </div>
+        </div>
+        <div class="logo">
+            <i class="fas fa-calendar-alt" style="color: var(--primary); -webkit-text-fill-color: initial;"></i>
+            <span>FFCS Scheduler</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/courses" class="{% if request.path == '/courses' %}active{% endif %}"><i class="fas fa-book"></i> Courses & Slots</a></li>
+            <li><a href="/generate" class="{% if request.path == '/generate' %}active{% endif %}"><i class="fas fa-magic"></i> Generate</a></li>
+            <li><a href="/results" class="{% if request.path == '/results' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Results</a></li>
+        </ul>
+    </nav>
+
+    <div class="top-bar">
+        <a href="/login" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </a>
+    </div>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

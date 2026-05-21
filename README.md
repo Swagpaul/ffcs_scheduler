@@ -1,69 +1,61 @@
 # FFCS Scheduler
 
-A desktop application for VIT students to automatically generate clash-free timetables from their course and slot preferences — no more manually checking combinations.
-
----
+A simple desktop app built for VIT students to automatically generate clash-free timetables. Instead of spending hours checking every single slot and professor combination manually, you just plug in your preferences and let the app handle the math.
 
 ## What it does
 
-- Add your courses, professors, and slot combinations
-- Set priorities for each option (which professor/slot combo you prefer most)
-- Hit **Generate** — the app produces all valid, clash-free timetable options, ranked by your preferences
-- If two courses have conflicting lab slots, the app generates **separate timetables** for each option instead of forcing a clash
-- Download any timetable as an image
-
----
+* Enter all your courses, professors, and slot combinations in one place.
+* Set priorities for each option, like if you prefer a specific teacher or timing.
+* Generate every possible valid, clash-free timetable. They are ranked automatically based on your priorities.
+* If a clash is completely unavoidable (like two labs sharing the same slot), the app will output separate timetables for each option so you can decide which one to go with.
+* Download any generated timetable as an image.
 
 ## How it works
 
-**Backtracking Algorithm** — recursively tries every course-professor-slot combination. If a clash is detected, it backtracks and tries the next option.
+The app uses a backtracking algorithm that tries every combination of your preferred courses, slots, and professors. When it hits a clash, it backtracks and tries the next combination, kind of like how a Sudoku solver works.
 
-**Smart Clash Handling** — when a clash is unavoidable (e.g. two lab courses share the same slot), separate timetables are generated — one with each course — so you can choose.
-
-**Heuristic Scoring** — timetables are ranked by your professor priorities, schedule compactness, and gap minimization.
-
----
+It also has a heuristic scoring system that ranks the schedules based on your preferred professors and tries to minimize gaps between classes so you do not get stuck with awkward 3-hour breaks.
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Desktop shell | Electron.js |
-| Backend | Flask (Python) |
-| Database | SQLite (local) |
-| Packaging | PyInstaller + electron-builder |
+* **Frontend:** Electron.js
+* **Backend:** Python / Flask
+* **Database:** SQLite (local persistence)
+* **Packaging:** PyInstaller and electron-builder. The app is packaged into a single standalone `.exe` file that works out of the box without needing Python or Node installed.
+
+## Running it locally
+
+If you want to run the code locally, make sure you have Python 3.10+ and Node.js 18+ installed.
+
+### Python Backend
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Start the Flask server:
+   ```bash
+   python run.py
+   ```
+
+### Electron Frontend & Packaging
+1. Install Node modules:
+   ```bash
+   npm install
+   ```
+2. Run the desktop app in development mode:
+   ```bash
+   npm run dev
+   ```
+3. Build the standalone installer and portable `.exe` files:
+   ```bash
+   npm run dist
+   ```
+   The output files will be created in the `dist_electron` directory.
+
+## How data is saved
+
+The app is entirely local-first. All your entered courses, priorities, and schedules are saved locally on your machine using SQLite. Your data stays on your computer and persists when you close and reopen the app.
 
 ---
 
-## Running locally
-
-**Prerequisites:** Python 3.10+, Node.js 18+
-
-```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Run the Flask app
-python run.py
-```
-
-To build the desktop `.exe`:
-
-```bash
-npm install
-npm run dist
-```
-
-The installer and portable executable will be in `dist_electron/`.
-
----
-
-## Distribution
-
-The app is packaged as a standalone Windows `.exe` — no Python, Node.js, or any other installation required on the recipient's machine. Data persists locally between sessions via SQLite.
-
----
-
-## Built by
-
-**Swagata Paul** — made this because FFCS was genuinely painful.
+Created by Swagata Paul because manually scheduling FFCS was too painful.

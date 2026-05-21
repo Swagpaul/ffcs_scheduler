@@ -1,0 +1,254 @@
+:root {
+    --bg-black: #000000;
+    --card-bg: #111111;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    
+    --highlight-yellow: #FFD93D;
+    --highlight-orange: #FF8400;
+    --highlight-pink: #FF0072;
+    --highlight-purple: #7B66FF;
+    --highlight-blue: #4D96FF;
+    
+    --primary: var(--highlight-pink);
+    --border-color: #222222;
+}
+
+body {
+    margin: 0;
+    padding: 2rem 0;
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-black);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    position: relative; /* For absolute children */
+}
+
+
+.user-status-top {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    z-index: 20;
+}
+
+.user-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--card-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    border: 2px solid var(--border-color);
+}
+
+.user-icon {
+    font-size: 1.2rem;
+    color: var(--highlight-blue);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.user-role {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+
+/* Minimalist Login Card */
+.login-container {
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem;
+    z-index: 10;
+}
+
+.login-card {
+    background: var(--card-bg);
+    border: 3px solid var(--border-color);
+    border-radius: 24px;
+    padding: 2.25rem 2rem;
+    box-shadow: 12px 12px 0px var(--highlight-purple);
+    transition: all 0.3s ease;
+}
+
+
+
+.login-card:hover {
+    transform: translate(-5px, -5px);
+    box-shadow: 25px 25px 0px var(--highlight-purple);
+    border-color: var(--text-main);
+}
+
+.login-header {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+
+
+.logo-large {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--highlight-pink);
+    margin-bottom: 0.25rem;
+    letter-spacing: -2px;
+}
+
+
+
+.login-header h1 {
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin: 0;
+    color: var(--text-main);
+    letter-spacing: -1px;
+}
+
+
+
+.login-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+
+/* Bold Form Styles */
+.login-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 1.25rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 0.85rem 1.25rem 0.85rem 3.5rem;
+    background: var(--bg-black);
+    border: 3px solid var(--border-color);
+    border-radius: 14px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    outline: none;
+
+}
+
+.input-wrapper input:focus {
+    border-color: var(--highlight-blue);
+    background: var(--card-bg);
+}
+
+.input-wrapper input:focus + i {
+    color: var(--highlight-blue);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+    accent-color: var(--highlight-blue);
+    width: 18px;
+    height: 18px;
+}
+
+.forgot-password {
+    color: var(--highlight-orange);
+    text-decoration: none;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 14px;
+
+    background: var(--highlight-yellow);
+    color: var(--bg-black);
+    border: 3px solid var(--highlight-yellow);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.btn-login:hover {
+    background: var(--bg-black);
+    color: var(--highlight-yellow);
+    transform: scale(1.02);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+
+.login-footer a {
+    color: var(--highlight-pink);
+    text-decoration: none;
+}
+
+/* Remove decorative elements as per minimalistic requirement */
+.bg-decoration, .blob {
+    display: none;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

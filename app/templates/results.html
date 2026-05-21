@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}Results | FFCS Scheduler{% endblock %}
+
+{% block extra_head %}
+<style>
+    .timetable-card {
+        margin-bottom: 5rem;
+        margin-top: 2rem;
+        position: relative;
+        overflow: visible;
+    }
+
+    .table-responsive {
+        overflow-x: auto; 
+        margin-top: 2rem;
+
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border-color);
+        background: var(--bg-black);
+        width: 100%;
+    }
+
+    .score-badge {
+        position: absolute;
+        top: -15px;
+        right: 20px;
+        background: var(--highlight-pink);
+        color: var(--bg-black);
+        padding: 8px 24px;
+        border-radius: 50px;
+        font-weight: 900;
+        z-index: 10;
+        border: var(--border-width) solid var(--bg-black);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .ffcs-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.65rem;
+        color: var(--text-main);
+        background: var(--bg-black);
+        table-layout: fixed;
+    }
+
+    .ffcs-table th,
+    .ffcs-table td {
+        border: 1px solid var(--border-color);
+        padding: 4px;
+        text-align: center;
+        min-width: unset;
+        height: 55px;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .header-row {
+        background: var(--card-bg);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.55rem;
+        letter-spacing: 0.5px;
+    }
+
+    .day-cell {
+        background: var(--card-bg);
+        color: var(--highlight-blue);
+        font-weight: 900;
+        width: 45px !important;
+        text-transform: uppercase;
+    }
+
+    .type-cell {
+        background: var(--card-bg);
+        color: var(--text-muted);
+        width: 45px !important;
+        font-size: 0.5rem;
+    }
+
+    .lunch-cell {
+        background: var(--border-color);
+        color: var(--text-muted);
+        font-weight: 900;
+        width: 25px !important;
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+        letter-spacing: 1px;
+        font-size: 0.55rem;
+    }
+
+    .slot-cell {
+        position: relative;
+        background: var(--bg-black);
+    }
+
+    .slot-label {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        color: #444444;
+        font-size: 0.45rem;
+        pointer-events: none;
+        font-weight: 900;
+    }
+
+    .class-filled {
+        color: var(--bg-black);
+        padding: 4px 2px;
+        font-weight: 900;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        line-height: 1.1;
+        border-radius: var(--radius-sm);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        border: 1px solid rgba(0,0,0,0.1);
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
+        box-sizing: border-box;
+    }
+
+    .class-filled:hover {
+        transform: scale(1.15) rotate(1deg);
+        z-index: 100;
+        box-shadow: 10px 10px 0px rgba(0,0,0,0.4);
+    }
+
+    .course-code {
+        font-size: 0.55rem;
+        letter-spacing: -0.02em;
+        margin-bottom: 1px;
+    }
+
+    .course-prof {
+        font-size: 0.45rem;
+        text-transform: uppercase;
+        opacity: 0.9;
+    }
+
+    .loading-text {
+        color: var(--highlight-yellow);
+        font-weight: 900;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        animation: blink 1s infinite;
+    }
+
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .download-container {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        padding-bottom: 1rem;
+    }
+
+    .btn-download {
+        background: var(--bg-black);
+        color: var(--highlight-yellow);
+        border: 2px solid var(--highlight-yellow);
+        padding: 1rem 2rem;
+        border-radius: var(--radius-md);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 4px 0px var(--highlight-yellow);
+    }
+
+    .btn-download:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 8px 8px 0px var(--highlight-yellow);
+        background: var(--highlight-yellow);
+        color: var(--bg-black);
+    }
+
+    .btn-download:active {
+        transform: translate(2px, 2px);
+        box-shadow: 0px 0px 0px var(--highlight-yellow);
+    }
+
+    /* Ensure captured element has proper background */
+    .capture-target {
+        background: var(--bg-black);
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Top Timetables</h1>
+    <p class="subtitle">Ranked by heuristic score.</p>
+</header>
+
+
+
+<section id="timetables-list">
+    <div style="text-align: center; padding: 3rem;">
+        <p class="loading-text">Fetching results...</p>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const GRID_MAPPING = {
+        'MON': {
+            'THEORY': ['A1', 'F1', 'D1', 'TB1', 'TG1', '-', '-', 'A2', 'F2', 'D2', 'TB2', 'TG2', '-', 'V3'],
+            'LAB': ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', '-', 'L31', 'L32', 'L33', 'L34', 'L35', 'L36', '-']
+        },
+        'TUE': {
+            'THEORY': ['B1', 'G1', 'E1', 'TC1', 'TAA1', '-', '-', 'B2', 'G2', 'E2', 'TC2', 'TAA2', '-', 'V4'],
+            'LAB': ['L7', 'L8', 'L9', 'L10', 'L11', 'L12', '-', 'L37', 'L38', 'L39', 'L40', 'L41', 'L42', '-']
+        },
+        'WED': {
+            'THEORY': ['C1', 'A1', 'F1', 'V1', 'V2', '-', '-', 'C2', 'A2', 'F2', 'TD2', 'TBB2', '-', 'V5'],
+            'LAB': ['L13', 'L14', 'L15', 'L16', 'L17', 'L18', '-', 'L43', 'L44', 'L45', 'L46', 'L47', 'L48', '-']
+        },
+        'THU': {
+            'THEORY': ['D1', 'B1', 'G1', 'TE1', 'TCC1', '-', '-', 'D2', 'B2', 'G2', 'TE2', 'TCC2', '-', 'V6'],
+            'LAB': ['L19', 'L20', 'L21', 'L22', 'L23', 'L24', '-', 'L49', 'L50', 'L51', 'L52', 'L53', 'L54', '-']
+        },
+        'FRI': {
+            'THEORY': ['E1', 'C1', 'TA1', 'TF1', 'TD1', '-', '-', 'E2', 'C2', 'TA2', 'TF2', 'TDD2', '-', 'V7'],
+            'LAB': ['L25', 'L26', 'L27', 'L28', 'L29', 'L30', '-', 'L55', 'L56', 'L57', 'L58', 'L59', 'L60', '-']
+        },
+        'SAT': {
+            'THEORY': ['V8', 'X11', 'X12', 'Y11', 'Y12', '-', '-', 'X21', 'Z21', 'Y21', 'W21', 'W22', '-', 'V9'],
+            'LAB': ['L71', 'L72', 'L73', 'L74', 'L75', 'L76', '-', 'L77', 'L78', 'L79', 'L80', 'L81', 'L82', '-']
+        },
+        'SUN': {
+            'THEORY': ['V10', 'Y11', 'Y12', 'X11', 'X12', '-', '-', 'Y21', 'Z21', 'X21', 'W21', 'W22', '-', 'V11'],
+            'LAB': ['L83', 'L84', 'L85', 'L86', 'L87', 'L88', '-', 'L89', 'L90', 'L91', 'L92', 'L93', 'L94', '-']
+        }
+    };
+
+    let timetableColors = {};
+
+    function getSubjectColor(name) {
+        if (!name) return '#475569';
+        return timetableColors[name] || '#475569';
+    }
+
+    function assignTimetableColors(data) {
+        if (!data || !Array.isArray(data)) return {};
+        const uniqueNames = [...new Set(data.map(c => c.course_name).filter(n => n))];
+        const colors = {};
+        
+        if (uniqueNames.length === 0) return {};
+
+        // Use HSL with even spacing for distinctness
+        uniqueNames.forEach((name, i) => {
+            const hue = (i * (360 / uniqueNames.length) + 20) % 360;
+            colors[name] = `hsl(${hue}, 85%, 65%)`;
+        });
+        
+        return colors;
+    }
+
+    const THEORY_TIMES = {
+        start: ['08:00', '09:00', '10:00', '11:00', '12:00', '-', '-', '14:00', '15:00', '16:00', '17:00', '18:00', '18:51', '19:01'],
+        end: ['08:50', '09:50', '10:50', '11:50', '12:50', '-', '-', '14:50', '15:50', '16:50', '17:50', '18:50', '19:00', '19:50']
+    };
+
+    const LAB_TIMES = {
+        start: ['08:00', '08:51', '09:51', '10:41', '11:40', '12:31', '-', '14:00', '14:51', '15:51', '16:41', '17:40', '18:31', '-'],
+        end: ['08:50', '09:40', '10:40', '11:30', '12:30', '13:20', '-', '14:50', '15:40', '16:40', '17:30', '18:30', '19:20', '-']
+    };
+
+    async function init() {
+        const list = document.getElementById('timetables-list');
+        if (!list) {
+            console.error("Critical: 'timetables-list' element not found!");
+            return;
+        }
+
+        console.log("FFCS: Initializing results fetch...");
+        try {
+            const r = await fetch('/api/timetables');
+            if (!r.ok) {
+                const errData = await r.json().catch(() => ({}));
+                throw new Error(errData.error || `HTTP ${r.status}`);
+            }
+            const tts = await r.json();
+            console.log(`FFCS: Received ${tts.length} timetables`);
+            renderTimetables(tts);
+            
+
+        } catch (err) {
+            console.error("FFCS Init Error:", err);
+            list.innerHTML = `
+                <div class="card" style="border-color: var(--danger); color: var(--danger); text-align: center; padding: 3rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1.5rem; display: block;"></i>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Failed to load results</h3>
+                    <p style="margin-bottom: 2rem; opacity: 0.8;">${err.message}</p>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync"></i> Retry Connection
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    function renderTimetables(tts) {
+        const list = document.getElementById('timetables-list');
+        try {
+            if (!tts || tts.length === 0) {
+                list.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 4rem; border-style: dashed; border-color: var(--highlight-purple);">
+                        <i class="fas fa-calendar-times" style="font-size: 3rem; color: var(--highlight-purple); margin-bottom: 1.5rem; display: block;"></i>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">No Timetables Found</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 2rem;">We haven't generated any schedules for you yet. Add your courses and let the engine work its magic!</p>
+                        <a href="/generate" class="btn btn-primary">
+                            <i class="fas fa-magic"></i> Generate Now
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = tts.map((tt, idx) => {
+                if (!tt || !tt.data) return '';
+                
+                // Assign unique colors for this specific timetable
+                timetableColors = assignTimetableColors(tt.data);
+                const totalCredits = tt.data.reduce((acc, c) => acc + (c.credits || 0), 0);
+                const dropped = tt.dropped_courses || [];
+                
+                const droppedBanner = dropped.length > 0 ? `
+                    <div style="
+                        background: rgba(251,191,36,0.1);
+                        border: 1.5px solid #fbbf24;
+                        border-radius: 10px;
+                        padding: 0.75rem 1.25rem;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        font-size: 0.85rem;
+                        color: #fbbf24;
+                    ">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Clash detected — course(s) dropped from this option:</strong>
+                            <span style="margin-left: 8px;">${dropped.map(d => `<span style="background:#fbbf2422; padding: 2px 8px; border-radius: 4px; border: 1px solid #fbbf2466; margin-right: 4px; font-weight: 800;">${d}</span>`).join('')}</span>
+                        </div>
+                    </div>
+                ` : '';
+                
+                return `
+                <div class="card timetable-card animate-fade" id="timetable-${idx}" style="position: relative; animation-delay: ${idx * 0.1}s;">
+                    <div class="score-badge">Rank #${idx + 1}</div>
+                    <div class="capture-target" id="capture-${idx}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0;">Option #${idx + 1}</h3>
+                            <span class="badge" style="font-size: 0.9rem; border-color: var(--highlight-purple); color: var(--highlight-purple);">Total Credits: ${totalCredits}</span>
+                        </div>
+                        
+                        ${droppedBanner}
+                        
+                        <div class="table-responsive">
+                            <table class="ffcs-table">
+                            <thead>
+                                <tr class="header-row">
+                                    <th rowspan="2" colspan="2" style="width: 90px;">THEORY</th>
+                                    <th style="width: 40px;">Start</th>
+                                    ${THEORY_TIMES.start.map((t, i) => i === 7 ? '<th rowspan="4" class="lunch-cell">LUNCH</th>' + `<th>${t}</th>` : `<th>${t}</th>`).join('')}
+                                </tr>
+                                <tr class="header-row">
+                                    <th>End</th>
+                                    ${THEORY_TIMES.end.map(t => `<th>${t}</th>`).join('')}
+                                </tr>
+                                <tr class="header-row">
+                                    <th rowspan="2" colspan="2">LAB</th>
+                                    <th>Start</th>
+                                    ${LAB_TIMES.start.map(t => `<th>${t}</th>`).join('')}
+                                </tr>
+                                <tr class="header-row">
+                                    <th>End</th>
+                                    ${LAB_TIMES.end.map(t => `<th>${t}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.keys(GRID_MAPPING).map(day => `
+                                <tr>
+                                    <td rowspan="2" class="day-cell">${day}</td>
+                                    <td class="type-cell">THEORY</td>
+                                    <td style="font-size: 0.5rem; color: #444;">-</td>
+                                    ${renderRowCells(day, 'theory', tt.data)}
+                                </tr>
+                                <tr>
+                                    <td class="type-cell">LAB</td>
+                                    <td style="font-size: 0.5rem; color: #444;">-</td>
+                                    ${renderRowCells(day, 'lab', tt.data)}
+                                </tr>
+                            `).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                        
+                        <div style="margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            ${(tt.data || []).map(renderCourseCard).join('')}
+                        </div>
+                    </div>
+
+                    <div class="download-container">
+                        <button class="btn-download" onclick="downloadTimetable(${idx}, event)">
+                            <i class="fas fa-download"></i>
+                            Download as Image
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        } catch (e) {
+            console.error("Rendering failed:", e);
+            list.innerHTML = `<div class="card" style="border-color: var(--danger); color: var(--danger);">
+                <h3>Rendering Error</h3>
+                <p>${e.message}</p>
+            </div>`;
+        }
+    }
+
+    function renderCourseCard(c) {
+        const color = getSubjectColor(c.course_name);
+        return `
+            <div style="font-size: 0.9rem; background: var(--card-bg); padding: 1.5rem; border-radius: var(--radius-md); border: var(--border-width) solid var(--border-color); border-bottom: 8px solid ${color};">
+                <div style="font-weight: 800; color: ${color}; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: flex-start;">
+                    <span>${c.course_name}</span>
+                    <span style="font-size: 0.65rem; background: ${color}22; padding: 2px 6px; border-radius: 4px; border: 1px solid ${color}44;">${c.course_code || 'COURSE'}</span>
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 8px;">${c.prof_name}</div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    ${c.theory_slot ? `<span class="badge" style="background: ${color}; color: var(--bg-black); font-size: 0.7rem; font-weight: 900; border: none; padding: 4px 10px; border-radius: 6px;">${c.theory_slot}</span>` : ''}
+                    ${c.lab_slot ? `<span class="badge" style="background: ${color}; color: var(--bg-black); font-size: 0.7rem; font-weight: 900; border: none; padding: 4px 10px; border-radius: 6px;">${c.lab_slot}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+
+
+    function findCoursesForSlot(slot, type, data) {
+        if (slot === '-') return [];
+        if (!data || !Array.isArray(data)) return [];
+        return data.filter(c => {
+            const slotsStr = (type === 'theory' ? c.theory_slot : c.lab_slot) || "";
+            return slotsStr.toUpperCase().split(/[+,]/).map(s => s.trim()).includes(slot.toUpperCase());
+        });
+    }
+
+    function renderRowCells(day, type, data) {
+        const slots = GRID_MAPPING[day][type.toUpperCase()];
+        let html = '';
+        let skipUntilIndex = -1;
+
+        for (let i = 0; i < slots.length; i++) {
+            if (type.toLowerCase() === 'lab' && i === 7) {
+                continue;
+            }
+
+            let prefix = '';
+            if (type.toLowerCase() === 'theory' && i === 7) {
+                prefix = '<td rowspan="2" class="lunch-cell">LUNCH</td>';
+            }
+
+            if (i <= skipUntilIndex) {
+                continue;
+            }
+
+            const slot = slots[i];
+            if (slot === '-') {
+                html += prefix + '<td>-</td>';
+                continue;
+            }
+
+            const courses = findCoursesForSlot(slot, type, data);
+            if (courses.length === 0) {
+                html += prefix + `
+                    <td class="slot-cell">
+                        <span class="slot-label">${slot}</span>
+                    </td>
+                `;
+                continue;
+            }
+
+            let colspan = 1;
+            for (let j = i + 1; j < slots.length; j++) {
+                if (j === 7) break;
+                
+                const nextSlot = slots[j];
+                const nextCourses = findCoursesForSlot(nextSlot, type, data);
+                const names1 = courses.map(c => c.course_name).sort().join('|');
+                const names2 = nextCourses.map(c => c.course_name).sort().join('|');
+                if (names1 && names1 === names2) {
+                    colspan++;
+                    skipUntilIndex = j;
+                } else {
+                    break;
+                }
+            }
+
+            const slotLabel = slots.slice(i, i + colspan).join('+');
+            let cardHtml = '';
+            if (courses.length === 1) {
+                const course = courses[0];
+                const color = getSubjectColor(course.course_name);
+                cardHtml = `
+                    <div class="class-filled" style="background-color: ${color}; height: 100%;">
+                        <div class="course-code">${slotLabel}-${course.course_name}</div>
+                        <div class="course-prof">${course.prof_name}</div>
+                    </div>
+                `;
+            } else {
+                cardHtml = `
+                    <div style="display: flex; flex-direction: column; gap: 2px; height: 100%; width: 100%;">
+                        ${courses.map(course => {
+                            const color = getSubjectColor(course.course_name);
+                            return `
+                                <div class="class-filled" style="background-color: ${color}; flex: 1; height: auto; padding: 2px;">
+                                    <div class="course-code" style="font-size: 0.5rem; letter-spacing: -0.02em;">${slotLabel}-${course.course_name}</div>
+                                    <div class="course-prof" style="font-size: 0.4rem; text-transform: uppercase;">${course.prof_name}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            html += prefix + `
+                <td class="slot-cell" colspan="${colspan}">
+                    <span class="slot-label">${slotLabel}</span>
+                    ${cardHtml}
+                </td>
+            `;
+        }
+
+        return html;
+    }
+
+
+
+    async function downloadTimetable(index, event) {
+        const target = document.getElementById(`capture-${index}`);
+        const btn = event.currentTarget;
+        const originalContent = btn.innerHTML;
+        
+        try {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating JPEG...';
+            btn.disabled = true;
+
+            const canvas = await html2canvas(target, {
+                backgroundColor: '#000000',
+                scale: 2, // Higher quality
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            });
+
+            const link = document.createElement('a');
+            link.download = `ffcs-timetable-option-${index + 1}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+            
+            btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }, 2000);
+
+        } catch (err) {
+            console.error("Download failed:", err);
+            btn.innerHTML = '<i class="fas fa-times"></i> Error';
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+
+    // Run immediately since script is at the end of body
+    init().catch(e => console.error("Top-level init error:", e));
+</script>
+{% endblock %}

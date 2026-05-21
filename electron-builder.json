@@ -1,0 +1,41 @@
+{
+  "appId": "com.ffcsscheduler.app",
+  "productName": "FFCS Scheduler",
+  "directories": {
+    "output": "dist_electron"
+  },
+  "files": [
+    "main.js",
+    "package.json",
+    "build/icon.png"
+  ],
+  "extraResources": [
+    {
+      "from": "dist/ffcs_backend",
+      "to": "backend",
+      "filter": [
+        "**/*"
+      ]
+    }
+  ],
+  "win": {
+    "icon": "build/icon.png",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "FFCS Scheduler"
+  }
+}

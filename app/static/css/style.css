@@ -1,0 +1,375 @@
+:root {
+    --bg-black: #000000;
+    --card-bg: #111111;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    
+    /* Pastel Bold Highlights from image */
+    --highlight-yellow: #FFD93D;
+    --highlight-orange: #FF8400;
+    --highlight-pink: #FF0072;
+    --highlight-purple: #7B66FF;
+    --highlight-blue: #4D96FF;
+    
+    --primary: var(--highlight-pink);
+    --secondary: var(--highlight-purple);
+    --accent: var(--highlight-blue);
+    --warning: var(--highlight-yellow);
+    --danger: #ff4d4d;
+    
+    --border-width: 2px;
+    --border-color: #222222;
+    --border-hover: #444444;
+    
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: var(--bg-black);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Sidebar Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    background: var(--bg-black);
+    border-right: var(--border-width) solid var(--border-color);
+    padding: 2rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 2.5rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.logo span {
+    color: var(--highlight-pink);
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: var(--border-width) solid transparent;
+}
+
+.nav-links a:hover {
+    color: var(--text-main);
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    transform: translateX(4px);
+}
+
+.nav-links a.active {
+    background: var(--card-bg);
+    color: var(--highlight-pink);
+    border-color: var(--highlight-pink);
+}
+
+/* User Profile Section */
+.user-profile {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.user-profile:hover {
+    border-color: var(--highlight-blue);
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    color: var(--highlight-blue);
+    background: rgba(77, 150, 255, 0.1);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.user-name {
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar-footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
+/* Main Content */
+main {
+    margin-left: 250px;
+    padding: 2.5rem;
+    max-width: 1400px;
+}
+
+
+header {
+    margin-bottom: 4rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+
+.subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Bold Cards */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: var(--border-width) solid var(--border-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+
+.card:hover {
+    transform: translateY(-8px);
+    border-color: var(--highlight-orange);
+    box-shadow: 10px 10px 0px var(--highlight-orange);
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+
+
+/* Forms & Inputs */
+.form-group {
+    margin-bottom: 2rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+input, select {
+    width: 100%;
+    background: var(--bg-black);
+    border: var(--border-width) solid var(--border-color);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+
+select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1.5rem center;
+    background-size: 1.2rem;
+    padding-right: 4rem;
+}
+
+option {
+    background-color: var(--card-bg);
+    color: white;
+    font-weight: 700;
+    padding: 1rem;
+}
+
+input:focus, select:focus {
+    border-color: var(--highlight-purple);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 4px rgba(123, 102, 255, 0.1);
+}
+
+/* Buttons */
+.btn {
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-md);
+    border: var(--border-width) solid transparent;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+
+.btn-primary {
+    background: var(--highlight-yellow);
+    color: var(--bg-black);
+    border-color: var(--highlight-yellow);
+}
+
+.btn-primary:hover {
+    background: var(--bg-black);
+    color: var(--highlight-yellow);
+    transform: scale(1.02);
+}
+
+/* Timetable Grid */
+.timetable-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: var(--border-width) solid var(--border-color);
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.timetable-grid {
+    display: grid;
+    grid-template-columns: 120px repeat(5, 1fr);
+    gap: var(--border-width);
+    background: var(--border-color);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--radius-md);
+    min-width: 900px;
+}
+
+.grid-header {
+    background: var(--bg-black);
+    padding: 1.5rem;
+    text-align: center;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.grid-cell {
+    background: var(--bg-black);
+    min-height: 120px;
+    padding: 0.75rem;
+    position: relative;
+}
+
+.course-block {
+    background: var(--highlight-blue);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--bg-black);
+    font-weight: 800;
+    margin-bottom: 4px;
+    border: var(--border-width) solid rgba(0,0,0,0.1);
+}
+
+/* Specific Highlight Variations */
+.course-block:nth-child(2n) { background: var(--highlight-orange); }
+.course-block:nth-child(3n) { background: var(--highlight-pink); }
+.course-block:nth-child(4n) { background: var(--highlight-purple); }
+
+/* Animations */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hide Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-black);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+}

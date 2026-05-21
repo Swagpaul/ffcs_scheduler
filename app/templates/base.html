@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FFCS Scheduler{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Top Bar for Logout */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 250px;
+            right: 0;
+            height: 70px;
+            background: var(--bg-black);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 2.5rem;
+            z-index: 90;
+            border-bottom: var(--border-width) solid var(--border-color);
+        }
+
+
+        .logout-btn {
+            background: var(--bg-black);
+            color: var(--danger);
+            border: var(--border-width) solid var(--danger);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 800;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: var(--bg-black);
+            transform: scale(1.05);
+        }
+
+        main {
+            padding-top: 90px; /* Offset for top bar */
+        }
+
+
+        @media (max-width: 1024px) {
+            nav { width: 80px; padding: 2rem 1rem; }
+            nav .user-details, nav .logo span, nav .nav-links span { display: none; }
+            main, .top-bar { left: 80px; }
+        }
+
+
+        @media (max-width: 768px) {
+            nav { display: none; }
+            main, .top-bar { left: 0; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-calendar-alt"></i>
+            <span>FFCS <span>Scheduler</span></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/courses" class="{% if request.path == '/courses' %}active{% endif %}"><i class="fas fa-book"></i> Courses & Slots</a></li>
+            <li><a href="/generate" class="{% if request.path == '/generate' %}active{% endif %}"><i class="fas fa-magic"></i> Generate</a></li>
+            <li><a href="/results" class="{% if request.path == '/results' %}active{% endif %}"><i class="fas fa-calendar-alt"></i> Results</a></li>
+        </ul>
+
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-details">
+                <span class="user-name">{{ session.get('username', 'Guest User') }}</span>
+                <span class="user-role">Student</span>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            Made with <i class="fas fa-heart" style="color: var(--highlight-pink);"></i> and made by Swag
+        </div>
+    </nav>
+
+    <div class="top-bar">
+        <a href="#" onclick="logoutUser(event)" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </a>
+    </div>
+
+    <script>
+        function logoutUser(e) {
+            e.preventDefault();
+            fetch('/api/logout', { method: 'POST' }).then(() => {
+                window.location.href = '/login';
+            });
+        }
+    </script>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

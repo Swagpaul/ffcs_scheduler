@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | FFCS Scheduler</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .signup-mode #confirm-password-group {
+            display: block;
+        }
+        #confirm-password-group {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="user-status-top">
+        <div class="user-pill">
+            <div class="user-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name">Guest User</span>
+                <span class="user-role">Not Signed In</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card animate-fade">
+            <div class="login-header">
+                <div class="logo-large">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h1 id="form-title">Welcome Back</h1>
+                <p id="form-subtitle">Sign in to continue to FFCS Scheduler</p>
+            </div>
+
+            <form class="login-form">
+                <div class="form-group">
+                    <label for="username">Username / Email</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="text" id="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="form-group" id="confirm-password-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-shield-alt"></i>
+                        <input type="password" id="confirm-password" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="form-options" id="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox"> <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-login" id="submit-btn">
+                    <span>Sign In</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p id="toggle-text">Don't have an account? <a href="javascript:void(0)" id="toggle-mode">Create one</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-decoration">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        const card = document.querySelector('.login-card');
+        const title = document.getElementById('form-title');
+        const subtitle = document.getElementById('form-subtitle');
+        const confirmGroup = document.getElementById('confirm-password-group');
+        const loginOptions = document.getElementById('login-options');
+        const submitBtn = document.getElementById('submit-btn');
+        const toggleText = document.getElementById('toggle-text');
+        
+        let isSignUp = false;
+
+        function updateUI() {
+            if (isSignUp) {
+                title.innerText = "Create Account";
+                subtitle.innerText = "Join FFCS AI to optimize your schedule";
+                confirmGroup.style.display = "block";
+                loginOptions.style.display = "none";
+                submitBtn.querySelector('span').innerText = "Create Account";
+                toggleText.innerHTML = 'Already have an account? <a href="javascript:void(0)" id="toggle-mode-btn">Sign In</a>';
+                document.getElementById('toggle-mode-btn').onclick = () => { isSignUp = false; updateUI(); };
+            } else {
+                title.innerText = "Welcome Back";
+                subtitle.innerText = "Sign in to continue to FFCS AI";
+                confirmGroup.style.display = "none";
+                loginOptions.style.display = "flex";
+                submitBtn.querySelector('span').innerText = "Sign In";
+                toggleText.innerHTML = 'Don\'t have an account? <a href="javascript:void(0)" id="toggle-mode-btn">Create one</a>';
+                document.getElementById('toggle-mode-btn').onclick = () => { isSignUp = true; updateUI(); };
+            }
+        }
+        
+        // Initial binding
+        updateUI();
+
+        document.querySelector('.login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (isSignUp) {
+                const confirmPassword = document.getElementById('confirm-password').value;
+                if (password !== confirmPassword) {
+                    showToast("Passwords do not match!", "error");
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                    return;
+                }
+                
+                fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                })
+                .then(r => r.json().then(data => ({status: r.status, body: data})))
+                .then(res => {
+                    if (res.status === 200) {
+                        showToast("Account created successfully! Please sign in.");
+                        isSignUp = false;
+                        updateUI();
+                    } else {
+                        showToast(res.body.error || "Failed to create account.", "error");
+                    }
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                }).catch(err => {
+                    showToast("An error occurred.", "error");
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+            } else {
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                })
+                .then(r => r.json().then(data => ({status: r.status, body: data})))
+                .then(res => {
+                    if (res.status === 200) {
+                        showToast("Logged in successfully!");
+                        setTimeout(() => window.location.href = '/', 1000);
+                    } else {
+                        showToast(res.body.error || "Invalid credentials", "error");
+                        btn.innerHTML = originalContent;
+                        btn.style.opacity = '1';
+                        btn.disabled = false;
+                    }
+                }).catch(err => {
+                    showToast("An error occurred.", "error");
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

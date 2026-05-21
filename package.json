@@ -1,0 +1,29 @@
+{
+  "name": "ffcs_scheduler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "build-backend": "venv\\Scripts\\pyinstaller --noconfirm --onedir --windowed --name ffcs_backend --add-data \"app/templates;app/templates\" --add-data \"app/static;app/static\" run.py",
+    "pack": "electron-builder --dir",
+    "dist": "npm run build-backend && electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Swagpaul/ffcs_scheduler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Swagpaul/ffcs_scheduler/issues"
+  },
+  "homepage": "https://github.com/Swagpaul/ffcs_scheduler#readme",
+  "devDependencies": {
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1"
+  }
+}
